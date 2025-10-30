@@ -16,7 +16,8 @@ def get_db_config():
         'database': os.environ.get('DBNAME'),
         'port': int(os.environ.get('DBPORT', '3306')),
         'ssl_ca': None,
-        'ssl_verify_cert': True
+        'ssl_verify_cert': False,  # Cambiado a False para Azure MySQL
+        'ssl_disabled': True  # Agregar esta línea
     }
 
 def get_db_connection():
