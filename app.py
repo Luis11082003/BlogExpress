@@ -12,28 +12,28 @@ import openpyxl
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'clave_secreta_por_defecto')
+app.secret_key = os.getenv('SECRETKEY', 'clave_secreta_por_defecto')
 
 # Configuración flexible de la base de datos
 def get_db_config():
     mode = os.getenv('MODE', 'local')
     if mode == 'azure':
         return {
-            'host': os.getenv('DB_HOST'),
-            'user': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASSWORD'),
-            'database': os.getenv('DB_NAME'),
-            'port': int(os.getenv('DB_PORT', 3306)),
+            'host': os.getenv('DBHOST'),
+            'user': os.getenv('DBUSER'),
+            'password': os.getenv('DBPASSWORD'),
+            'database': os.getenv('DBNAME'),
+            'port': int(os.getenv('DBPORT', 3306)),
             'ssl_ca': None,
             'ssl_verify_cert': True
         }
     else:
         return {
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'user': os.getenv('DB_USER', 'root'),
-            'password': os.getenv('DB_PASSWORD', '1108'),
-            'database': os.getenv('DB_NAME', 'blog_rapido_express'),
-            'port': int(os.getenv('DB_PORT', 3306))
+            'host': os.getenv('DBHOST', 'localhost'),
+            'user': os.getenv('DBUSER', 'root'),
+            'password': os.getenv('DBPASSWORD', '1108'),
+            'database': os.getenv('DBNAME', 'blog_rapido_express'),
+            'port': int(os.getenv('DBPORT', 3306))
         }
 
 def get_db_connection():
