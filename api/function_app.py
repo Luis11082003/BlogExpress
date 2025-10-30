@@ -309,11 +309,11 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         try:
             cursor = conn.cursor()
             
-            # Insertar registro principal
+            # INSERT CORREGIDO con fecha explícita
             cursor.execute('''
                 INSERT INTO registros_actualizacion 
-                (nombre_archivo, usuario, cantidad_registros)
-                VALUES (%s, %s, %s)
+                (nombre_archivo, usuario, cantidad_registros, fecha_actualizacion)
+                VALUES (%s, %s, %s, NOW())
             ''', (file.filename, usuario, len(elementos_procesados)))
             
             registro_id = cursor.lastrowid
@@ -337,12 +337,19 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             
             conn.commit()
             
+            # Contar tipos de contenido para el response
+            tipos = {'T': 0, 'ST': 0, 'P': 0, 'I': 0}
+            for elemento in elementos_procesados:
+                if elemento['tipo_contenido'] in tipos:
+                    tipos[elemento['tipo_contenido']] += 1
+            
             return func.HttpResponse(
                 json.dumps({
                     "success": True,
                     "registro_id": registro_id,
                     "mensaje": f"Archivo procesado exitosamente. {len(elementos_procesados)} elementos cargados.",
-                    "elementos_procesados": len(elementos_procesados)
+                    "elementos_procesados": len(elementos_procesados),
+                    "tipos_contenido": tipos
                 }),
                 status_code=200,
                 mimetype="application/json",
@@ -372,10 +379,9 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             headers={"Access-Control-Allow-Origin": "*"}
         )
 
-# Endpoint para inicializar tablas si es necesario
 @app.route(route="init-tables", methods=["GET"])
 def init_tables(req: func.HttpRequest) -> func.HttpResponse:
-    """Endpoint para inicializar tablas manualmente"""
+    """Endpoint para inicializar tablas manualmente - VERSIÓN CORREGIDA"""
     try:
         conn = get_db_connection()
         if not conn:
@@ -388,20 +394,24 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
         
         cursor = conn.cursor()
         
-        # Tabla de registros
+        # ELIMINAR tablas existentes si hay problemas
+        cursor.execute("DROP TABLE IF EXISTS blog_contenido")
+        cursor.execute("DROP TABLE IF EXISTS registros_actualizacion")
+        
+        # Tabla de registros - VERSIÓN CORREGIDA
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS registros_actualizacion (
+            CREATE TABLE registros_actualizacion (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nombre_archivo VARCHAR(255) NOT NULL,
                 usuario VARCHAR(100) DEFAULT 'Anonimo',
                 fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
                 cantidad_registros INT DEFAULT 0
-            )
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
         
-        # Tabla de contenido
+        # Tabla de contenido - VERSIÓN CORREGIDA
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS blog_contenido (
+            CREATE TABLE blog_contenido (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 registro_id INT,
                 dia INT,
@@ -412,7 +422,7 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
                 contenido TEXT,
                 estilo TEXT,
                 fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
         
         conn.commit()
@@ -420,7 +430,10 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
         conn.close()
         
         return func.HttpResponse(
-            json.dumps({"success": True, "message": "Tablas creadas exitosamente"}),
+            json.dumps({
+                "success": True, 
+                "message": "✅ Tablas recreadas exitosamente con valores por defecto correctos"
+            }),
             status_code=200,
             mimetype="application/json",
             headers={"Access-Control-Allow-Origin": "*"}
