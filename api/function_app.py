@@ -24,10 +24,10 @@ def get_db_connection():
     try:
         config = get_db_config()
         conn = mysql.connector.connect(**config)
-        print(f"✅ Conectado a MySQL: {config['host']}")
+        print(f"Conectado a MySQL: {config['host']}")
         return conn
     except Exception as e:
-        print(f"❌ Error de conexión a BD: {str(e)}")
+        print(f"Error de conexión a BD: {str(e)}")
         return None
 
 def init_db():
@@ -45,7 +45,7 @@ def init_db():
                     ano INT,
                     numero_publicacion INT,
                     nombre_archivo VARCHAR(255) NOT NULL,
-                    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    fecha_actualizacion DATETime DEFAULT CURRENT_TIMESTAMP,
                     usuario VARCHAR(100) DEFAULT 'Anónimo',
                     cantidad_registros INT DEFAULT 0,
                     estado VARCHAR(20) DEFAULT 'completado'
@@ -64,16 +64,16 @@ def init_db():
                     tipo_contenido VARCHAR(10),
                     contenido TEXT,
                     estilo TEXT,
-                    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    fecha_creacion DATETime DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (registro_id) REFERENCES registros_actualizacion(id) ON DELETE CASCADE
                 )
             ''')
             
             conn.commit()
-            print("✅ Base de datos inicializada")
+            print("Base de datos inicializada")
             
         except Exception as e:
-            print(f"❌ Error BD: {e}")
+            print(f"Error BD: {e}")
         finally:
             if conn.is_connected():
                 cursor.close()
@@ -143,7 +143,11 @@ def get_blog(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": "Error conectando a BD"}),
                 status_code=500,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
         cursor = conn.cursor(dictionary=True)
@@ -161,13 +165,21 @@ def get_blog(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps(contenido, default=str),
             status_code=200,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
         )
     except Exception as e:
         return func.HttpResponse(
             json.dumps({"error": str(e)}),
             status_code=500,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
         )
 
 @app.route(route="api/subir", methods=["POST"])
@@ -177,7 +189,11 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": "No se recibió archivo"}),
                 status_code=400,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
         file = req.files.get('archivo')
@@ -187,10 +203,14 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": "Archivo inválido"}),
                 status_code=400,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
-        print(f"📤 Procesando: {file.filename}")
+        print(f"Procesando: {file.filename}")
         file_content = file.read()
         
         contenido_procesado, error = procesar_archivo(file_content, file.filename)
@@ -198,7 +218,11 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": error}),
                 status_code=400,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
         # Guardar en BD
@@ -207,7 +231,11 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": "Error BD"}),
                 status_code=500,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
         try:
@@ -254,11 +282,15 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
                 json.dumps({
                     "success": True,
                     "registro_id": registro_id,
-                    "mensaje": f"✅ Archivo procesado: {len(contenido_procesado)} elementos",
+                    "mensaje": f"Archivo procesado: {len(contenido_procesado)} elementos",
                     "elementos_procesados": len(contenido_procesado)
                 }),
                 status_code=200,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
             
         except Exception as e:
@@ -273,7 +305,11 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({"error": f"Error: {str(e)}"}),
             status_code=500,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
         )
 
 @app.route(route="api/historial", methods=["GET"])
@@ -284,7 +320,11 @@ def get_historial(req: func.HttpRequest) -> func.HttpResponse:
             return func.HttpResponse(
                 json.dumps({"error": "Error BD"}),
                 status_code=500,
-                mimetype="application/json"
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
             )
         
         cursor = conn.cursor(dictionary=True)
@@ -303,13 +343,90 @@ def get_historial(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps(historial, default=str),
             status_code=200,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
         )
     except Exception as e:
         return func.HttpResponse(
             json.dumps({"error": str(e)}),
             status_code=500,
-            mimetype="application/json"
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
+        )
+
+@app.route(route="api/detalle/{id}", methods=["GET"])
+def get_detalle(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        registro_id = req.route_params.get('id')
+        
+        conn = get_db_connection()
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "Error BD"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
+            )
+        
+        cursor = conn.cursor(dictionary=True)
+        
+        # Obtener información del registro
+        cursor.execute('''
+            SELECT * FROM registros_actualizacion WHERE id = %s
+        ''', (registro_id,))
+        registro = cursor.fetchone()
+        
+        if not registro:
+            return func.HttpResponse(
+                json.dumps({"error": "Registro no encontrado"}),
+                status_code=404,
+                mimetype="application/json",
+                headers={
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*"
+                }
+            )
+        
+        # Obtener contenido del registro
+        cursor.execute('''
+            SELECT * FROM historial_contenido WHERE registro_id = %s
+            ORDER BY id
+        ''', (registro_id,))
+        contenido = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return func.HttpResponse(
+            json.dumps({
+                "registro": registro,
+                "contenido": contenido
+            }, default=str),
+            status_code=200,
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
+        )
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
+            }
         )
 
 @app.route(route="api/health", methods=["GET"])
@@ -321,9 +438,13 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
             "timestamp": datetime.now().isoformat()
         }),
         status_code=200,
-        mimetype="application/json"
+        mimetype="application/json",
+        headers={
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+        }
     )
 
 # Inicializar al cargar
-print("🚀 Iniciando Blog Express...")
+print("Iniciando Blog Express...")
 init_db()
