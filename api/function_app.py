@@ -5,6 +5,7 @@ import os
 import logging
 import csv
 import io
+from datetime import datetime
 
 # Configuración de base de datos
 def get_db_config():
@@ -21,7 +22,6 @@ def get_db_connection():
     try:
         config = get_db_config()
         conn = mysql.connector.connect(**config)
-        logging.info("✅ Conectado a MySQL")
         return conn
     except Exception as e:
         logging.error(f"❌ Error conexión BD: {e}")
@@ -32,9 +32,23 @@ def init_db():
     if conn:
         try:
             cursor = conn.cursor()
+            
+            # Tabla de registros
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS registros_actualizacion (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre_archivo VARCHAR(255),
+                    usuario VARCHAR(100),
+                    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    cantidad_registros INT
+                )
+            ''')
+            
+            # Tabla de contenido
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS blog_contenido (
                     id INT AUTO_INCREMENT PRIMARY KEY,
+                    registro_id INT,
                     dia INT,
                     mes VARCHAR(50),
                     ano INT,
@@ -42,11 +56,13 @@ def init_db():
                     tipo_contenido VARCHAR(10),
                     contenido TEXT,
                     estilo TEXT,
-                    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+                    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (registro_id) REFERENCES registros_actualizacion(id)
                 )
             ''')
+            
             conn.commit()
-            logging.info("✅ Tabla blog_contenido lista")
+            
         except Exception as e:
             logging.error(f"Error BD: {e}")
         finally:
@@ -62,7 +78,7 @@ app = func.FunctionApp()
 @app.route(route="health", methods=["GET"])
 def health_check(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
-        json.dumps({"status": "healthy", "message": "Sistema funcionando sin pandas"}),
+        json.dumps({"status": "healthy", "message": "Sistema funcionando"}),
         status_code=200,
         mimetype="application/json",
         headers={"Access-Control-Allow-Origin": "*"}
@@ -72,40 +88,40 @@ def health_check(req: func.HttpRequest) -> func.HttpResponse:
 def get_blog(req: func.HttpRequest) -> func.HttpResponse:
     try:
         conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute('SELECT * FROM blog_contenido ORDER BY fecha_creacion DESC LIMIT 50')
-            contenido = cursor.fetchall()
-            cursor.close()
-            conn.close()
-            
-            if contenido:
-                return func.HttpResponse(
-                    json.dumps(contenido, default=str),
-                    status_code=200,
-                    mimetype="application/json",
-                    headers={"Access-Control-Allow-Origin": "*"}
-                )
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "Error de conexión a BD"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
         
-        # Si no hay datos en BD, devolver ejemplo
-        data = [
-            {
-                "dia": 30, "mes": "Octubre", "ano": 2024, "numero_publicacion": 1,
-                "tipo_contenido": "T", "contenido": "🚀 BLOG EXPRESS - SUBE UN ARCHIVO CSV", 
-                "estilo": "color:#2c3e50; text-align:center"
-            },
-            {
-                "dia": 30, "mes": "Octubre", "ano": 2024, "numero_publicacion": 1,
-                "tipo_contenido": "P", "contenido": "Usa la página 'Subir' para cargar un archivo CSV con el formato correcto.", 
-                "estilo": "color:#555; background:#f8f9fa; padding:1rem; border-radius:8px"
-            }
-        ]
-        return func.HttpResponse(
-            json.dumps(data),
-            status_code=200,
-            mimetype="application/json",
-            headers={"Access-Control-Allow-Origin": "*"}
-        )
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT dia, mes, ano, numero_publicacion, tipo_contenido, contenido, estilo
+            FROM blog_contenido 
+            ORDER BY fecha_creacion DESC
+            LIMIT 100
+        ''')
+        contenido = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        if contenido:
+            return func.HttpResponse(
+                json.dumps(contenido, default=str),
+                status_code=200,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        else:
+            # Si no hay datos, devolver vacío
+            return func.HttpResponse(
+                json.dumps([]),
+                status_code=200,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
         
     except Exception as e:
         return func.HttpResponse(
@@ -115,36 +131,33 @@ def get_blog(req: func.HttpRequest) -> func.HttpResponse:
             headers={"Access-Control-Allow-Origin": "*"}
         )
 
-def procesar_csv_manual(file_content):
-    """Procesar CSV manualmente sin pandas"""
+def procesar_csv(file_content):
+    """Procesar CSV manualmente"""
     try:
-        # Convertir bytes a string
         content_str = file_content.decode('utf-8')
         reader = csv.DictReader(io.StringIO(content_str))
         
         elementos_procesados = []
-        required_columns = ['Día', 'Mes', 'Año', 'N° Publicación', 'Tipo', 'Contenido / URL']
         
-        for row_num, row in enumerate(reader, 1):
-            # Verificar columnas requeridas
-            missing_columns = [col for col in required_columns if col not in row]
-            if missing_columns:
-                raise ValueError(f"Faltan columnas: {', '.join(missing_columns)}")
+        for row in reader:
+            # Normalizar nombres de columnas
+            dia = row.get('Día') or row.get('dia') or '30'
+            mes = row.get('Mes') or row.get('mes') or 'Octubre'
+            ano = row.get('Año') or row.get('ano') or '2024'
+            numero_pub = row.get('N° Publicación') or row.get('numero_publicacion') or '1'
+            tipo = row.get('Tipo') or row.get('tipo_contenido') or 'P'
+            contenido = row.get('Contenido / URL') or row.get('contenido') or ''
+            estilo = row.get('Estilo') or row.get('estilo') or ''
             
-            # Procesar fila
             elemento = {
-                'dia': int(row['Día']) if row['Día'].strip() else 30,
-                'mes': row['Mes'].strip() or 'Octubre',
-                'ano': int(row['Año']) if row['Año'].strip() else 2024,
-                'numero_publicacion': int(row['N° Publicación']) if row['N° Publicación'].strip() else 1,
-                'tipo_contenido': row['Tipo'].strip().upper(),
-                'contenido': row['Contenido / URL'].strip(),
-                'estilo': row.get('Estilo', '').strip()
+                'dia': int(dia) if dia.strip() else 30,
+                'mes': mes.strip(),
+                'ano': int(ano) if ano.strip() else 2024,
+                'numero_publicacion': int(numero_pub) if numero_pub.strip() else 1,
+                'tipo_contenido': tipo.strip().upper(),
+                'contenido': contenido.strip(),
+                'estilo': estilo.strip()
             }
-            
-            # Validar tipo de contenido
-            if elemento['tipo_contenido'] not in ['T', 'ST', 'P', 'I']:
-                raise ValueError(f"Fila {row_num}: Tipo '{elemento['tipo_contenido']}' inválido. Use T, ST, P o I")
             
             elementos_procesados.append(elemento)
         
@@ -177,35 +190,67 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         file = req.files.get('archivo')
         usuario = req.form.get('usuario', 'Anónimo')
         
-        if not file or not file.filename.lower().endswith('.csv'):
+        if not file or not file.filename:
             return func.HttpResponse(
-                json.dumps({"error": "Se requiere archivo CSV"}),
+                json.dumps({"error": "Archivo inválido"}),
                 status_code=400,
                 mimetype="application/json",
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
-        # Leer y procesar archivo
+        # Procesar archivo
         file_content = file.read()
-        elementos_procesados = procesar_csv_manual(file_content)
+        elementos_procesados = procesar_csv(file_content)
+        
+        if not elementos_procesados:
+            return func.HttpResponse(
+                json.dumps({"error": "El archivo está vacío o no tiene formato correcto"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
         
         # Guardar en BD
         conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor()
-            for elemento in elementos_procesados:
-                cursor.execute('''
-                    INSERT INTO blog_contenido 
-                    (dia, mes, ano, numero_publicacion, tipo_contenido, contenido, estilo)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ''', (
-                    elemento['dia'], elemento['mes'], elemento['ano'],
-                    elemento['numero_publicacion'], elemento['tipo_contenido'],
-                    elemento['contenido'], elemento['estilo']
-                ))
-            conn.commit()
-            cursor.close()
-            conn.close()
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "Error de conexión a base de datos"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        cursor = conn.cursor()
+        
+        # Insertar registro principal
+        cursor.execute('''
+            INSERT INTO registros_actualizacion 
+            (nombre_archivo, usuario, cantidad_registros)
+            VALUES (%s, %s, %s)
+        ''', (file.filename, usuario, len(elementos_procesados)))
+        
+        registro_id = cursor.lastrowid
+        
+        # Insertar contenido
+        for elemento in elementos_procesados:
+            cursor.execute('''
+                INSERT INTO blog_contenido 
+                (registro_id, dia, mes, ano, numero_publicacion, tipo_contenido, contenido, estilo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ''', (
+                registro_id,
+                elemento['dia'],
+                elemento['mes'],
+                elemento['ano'],
+                elemento['numero_publicacion'],
+                elemento['tipo_contenido'],
+                elemento['contenido'],
+                elemento['estilo']
+            ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
         
         # Contar tipos de contenido
         tipos = {'T': 0, 'ST': 0, 'P': 0, 'I': 0}
@@ -216,7 +261,8 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({
                 "success": True,
-                "message": f"✅ Archivo procesado: {len(elementos_procesados)} elementos cargados",
+                "registro_id": registro_id,
+                "mensaje": f"✅ Archivo procesado: {len(elementos_procesados)} elementos cargados",
                 "elementos_procesados": len(elementos_procesados),
                 "tipos_contenido": tipos
             }),
@@ -233,6 +279,7 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             headers={"Access-Control-Allow-Origin": "*"}
         )
     except Exception as e:
+        logging.error(f"Error general: {e}")
         return func.HttpResponse(
             json.dumps({"error": f"Error del servidor: {str(e)}"}),
             status_code=500,
@@ -244,41 +291,34 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
 def get_historial(req: func.HttpRequest) -> func.HttpResponse:
     try:
         conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute('''
-                SELECT COUNT(*) as total_archivos, 
-                       COUNT(DISTINCT tipo_contenido) as tipos_contenido,
-                       MAX(fecha_creacion) as ultima_actualizacion
-                FROM blog_contenido
-            ''')
-            stats = cursor.fetchone()
-            cursor.close()
-            conn.close()
-            
-            data = [{
-                "total_archivos": stats['total_archivos'],
-                "tipos_contenido": stats['tipos_contenido'],
-                "ultima_actualizacion": stats['ultima_actualizacion'],
-                "estado": "completado"
-            }]
-        else:
-            data = [{
-                "total_archivos": 0,
-                "tipos_contenido": 0,
-                "ultima_actualizacion": "2024-10-30T00:00:00Z",
-                "estado": "sin conexión BD"
-            }]
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "Error de conexión a BD"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id, nombre_archivo, usuario, fecha_actualizacion, cantidad_registros
+            FROM registros_actualizacion 
+            ORDER BY fecha_actualizacion DESC 
+            LIMIT 50
+        ''')
+        historial = cursor.fetchall()
+        cursor.close()
+        conn.close()
         
         return func.HttpResponse(
-            json.dumps(data),
+            json.dumps(historial, default=str),
             status_code=200,
             mimetype="application/json",
             headers={"Access-Control-Allow-Origin": "*"}
         )
     except Exception as e:
         return func.HttpResponse(
-            json.dumps([{"error": str(e)}]),
+            json.dumps({"error": str(e)}),
             status_code=500,
             mimetype="application/json",
             headers={"Access-Control-Allow-Origin": "*"}

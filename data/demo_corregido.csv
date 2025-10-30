@@ -1,0 +1,8 @@
+﻿Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
+30,Octubre,2024,1,T,"🚀 Blog Express - PRÁCTICA 2 EXITOSA","color:#2c3e50; text-align:center; font-size:2rem"
+30,Octubre,2024,1,ST,"Sistema de Generación Dinámica Funcionando","color:#3498db; text-align:center"
+30,Octubre,2024,1,P,"Este contenido se generó automáticamente desde un archivo CSV. El sistema interpreta cada fila y crea elementos HTML dinámicamente.","color:#555; line-height:1.6"
+30,Octubre,2024,1,P,"Características: ✅ CSV a HTML ✅ Tipos de contenido ✅ Estilos CSS ✅ Azure Cloud ✅ Base de datos MySQL","color:#27ae60; background:#f8f9fa; padding:1rem; border-radius:8px"
+30,Octubre,2024,1,I,"https://picsum.photos/800/400","width:100%; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1)"
+30,Octubre,2024,1,ST,"Tecnologías Utilizadas","color:#e74c3c; text-align:center"
+30,Octubre,2024,1,P,"Frontend: HTML5/CSS3/JavaScript | Backend: Azure Functions (Python) | Base de datos: Azure MySQL | Hosting: Azure Static Web Apps","color:#7f8c8d; text-align:center; font-style:italic"
