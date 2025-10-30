@@ -1,0 +1,5 @@
+﻿Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
+30,Octubre,2024,1,T,"Título desde CSV","color:#2c3e50; text-align:center"
+30,Octubre,2024,1,P,"Este párrafo se generó desde un archivo CSV subido al sistema.","color:#555; line-height:1.6"
+30,Octubre,2024,1,ST,"Subtítulo generado","color:#3498db"
+30,Octubre,2024,1,I,"https://picsum.photos/600/300","width:100%; border-radius:8px"
