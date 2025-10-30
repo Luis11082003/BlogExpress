@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subir Archivo - Blog Express</title>
     <link rel="stylesheet" href="static/styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📤</text></svg>">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
 </head>
 <body>
     <header>
         <nav class="navbar">
             <div class="nav-brand">
-                <h1>🚀 Blog Express</h1>
+                <h1>Blog Express</h1>
                 <span class="nav-subtitle">Sistema de Gestión Dinámica</span>
             </div>
             <div class="nav-links">
-                <a href="index.html" class="nav-link">📝 Blog</a>
-                <a href="subir.html" class="nav-link active">📤 Subir</a>
-                <a href="historial.html" class="nav-link">📊 Historial</a>
-                <a href="info.html" class="nav-link">ℹ️ Info</a>
+                <a href="index.html" class="nav-link">Blog</a>
+                <a href="subir.html" class="nav-link active">Subir</a>
+                <a href="historial.html" class="nav-link">Historial</a>
+                <a href="info.html" class="nav-link">Info</a>
             </div>
         </nav>
     </header>
@@ -26,7 +26,7 @@
     <main class="container">
         <section class="upload-section">
             <div class="section-header">
-                <h2>📤 Subir Archivo de Contenido</h2>
+                <h2>Subir Archivo de Contenido</h2>
                 <p>Carga archivos CSV o Excel para generar contenido dinámico en el blog</p>
             </div>
 
@@ -34,19 +34,19 @@
                 <div class="upload-form-container">
                     <form id="form-subir" class="upload-form" onsubmit="subirArchivo(event)">
                         <div class="form-group">
-                            <label for="archivo">📁 Seleccionar Archivo:</label>
+                            <label for="archivo">Seleccionar Archivo:</label>
                             <input type="file" id="archivo" name="archivo" accept=".csv,.xlsx,.xls" required>
                             <small class="form-help">Formatos aceptados: CSV, Excel (.xlsx, .xls)</small>
                         </div>
 
                         <div class="form-group">
-                            <label for="usuario">👤 Nombre de Usuario (opcional):</label>
+                            <label for="usuario">Nombre de Usuario (opcional):</label>
                             <input type="text" id="usuario" name="usuario" placeholder="Tu nombre para el registro">
                             <small class="form-help">Este nombre aparecerá en el historial de actualizaciones</small>
                         </div>
 
                         <button type="submit" class="btn-submit">
-                            📤 Subir Archivo
+                            Subir Archivo
                         </button>
                     </form>
 
@@ -56,11 +56,11 @@
                 </div>
 
                 <div class="upload-info">
-                    <h3>📋 Formato Requerido del Archivo</h3>
+                    <h3>Formato Requerido del Archivo</h3>
                     
                     <div class="format-requirements">
                         <div class="requirement-section">
-                            <h4>📊 Columnas Obligatorias:</h4>
+                            <h4>Columnas Obligatorias:</h4>
                             <ul>
                                 <li><strong>Día</strong> - Número del día (1-31)</li>
                                 <li><strong>Mes</strong> - Nombre del mes (Enero, Febrero, etc.)</li>
@@ -72,7 +72,7 @@
                         </div>
 
                         <div class="requirement-section">
-                            <h4>🎯 Tipos de Contenido:</h4>
+                            <h4>Tipos de Contenido:</h4>
                             <ul>
                                 <li><strong>T</strong> - Título principal (se convierte en &lt;h1&gt;)</li>
                                 <li><strong>ST</strong> - Subtítulo (se convierte en &lt;h3&gt;)</li>
@@ -82,7 +82,7 @@
                         </div>
 
                         <div class="requirement-section">
-                            <h4>🎨 Columna Opcional:</h4>
+                            <h4>Columna Opcional:</h4>
                             <ul>
                                 <li><strong>Estilo</strong> - CSS inline para personalizar el elemento</li>
                             </ul>
@@ -90,7 +90,7 @@
                     </div>
 
                     <div class="example-section">
-                        <h4>📝 Ejemplo de Archivo CSV:</h4>
+                        <h4>Ejemplo de Archivo CSV:</h4>
                         <pre class="code-example">
 Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
 21,Octubre,2024,1,T,"Bienvenidos a Nuestro Blog","color:#2c3e50; text-align:center"
@@ -100,7 +100,7 @@ Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
                     </div>
 
                     <div class="tips-section">
-                        <h4>💡 Consejos:</h4>
+                        <h4>Consejos:</h4>
                         <ul>
                             <li>Las imágenes (Tipo I) deben ser URLs válidas que comiencen con http:// o https://</li>
                             <li>Puedes usar la columna "Estilo" para aplicar CSS personalizado a cada elemento</li>
@@ -115,7 +115,7 @@ Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
 
     <footer class="footer">
         <div class="footer-content">
-            <p>🚀 <strong>Blog Express</strong> - Sistema de Gestión de Contenido Dinámico</p>
+            <p><strong>Blog Express</strong> - Sistema de Gestión de Contenido Dinámico</p>
             <p>Desarrollado con Azure Functions + MySQL + Static Web Apps</p>
             <p class="footer-version">v2.0 - Práctica de Implementación</p>
         </div>
