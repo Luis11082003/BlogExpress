@@ -54,6 +54,7 @@ def init_db():
         try:
             cursor = conn.cursor()
             mode = os.getenv('MODE', 'local')
+            
             if mode == 'local':
                 cursor.execute("CREATE DATABASE IF NOT EXISTS blog_rapido_express")
                 cursor.execute("USE blog_rapido_express")
@@ -137,8 +138,6 @@ def init_db():
             logging.error(f"Error al inicializar la base de datos: {e}")
             flash(f'Error al inicializar la base de datos: {e}', 'error')
 
-# ------------------ Funciones de Azure ------------------
-
 def get_azure_blob_client():
     try:
         connection_string = os.getenv('AZURE_STORAGE_CONNECTION_STRING')
@@ -178,8 +177,6 @@ def download_from_azure_blob(filename):
         logging.error(f"Error descargando de Azure Blob: {e}")
     return None
 
-# ------------------ Procesar Contenido ------------------
-
 def procesar_contenido():
     try:
         archivo_local = 'data/contenido_blog.csv'
@@ -193,13 +190,11 @@ def procesar_contenido():
             crear_archivo_ejemplo()
             print("Archivo de ejemplo creado automáticamente")
         
-        # Leer CSV o Excel
         if archivo_local.endswith('.csv'):
             df = pd.read_csv(archivo_local)
         else:
             df = pd.read_excel(archivo_local)
         
-        # Normalizar nombres de columnas
         df.rename(columns={
             'Día': 'dia',
             'Mes': 'mes',
@@ -233,8 +228,6 @@ def procesar_contenido():
         logging.error(f"Error procesando contenido: {e}")
         return f"<p>Error al procesar el contenido: {str(e)}</p>"
 
-# ------------------ Crear archivo de ejemplo ------------------
-
 def crear_archivo_ejemplo():
     os.makedirs('data', exist_ok=True)
     contenido_ejemplo = '''Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
@@ -243,15 +236,12 @@ def crear_archivo_ejemplo():
     with open('data/contenido_blog.csv', 'w', encoding='utf-8') as f:
         f.write(contenido_ejemplo)
 
-# ------------------ Guardar registros en BD ------------------
-
 def guardar_registro_actualizacion(df, nombre_archivo, usuario=None, ip_cliente=None):
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
             
-            # Normalizar columnas
             df.rename(columns={
                 'Día': 'dia',
                 'Mes': 'mes',
@@ -307,8 +297,6 @@ def guardar_registro_actualizacion(df, nombre_archivo, usuario=None, ip_cliente=
     
     return None
 
-# ------------------ Rutas Flask ------------------
-
 @app.route('/')
 def mostrar_blog():
     contenido = procesar_contenido()
@@ -320,8 +308,6 @@ def subir_archivo():
     if request.method == 'POST':
         archivo = request.files['archivo']
         usuario = request.form.get('usuario', 'Anónimo')
-        
-        # ✅ Obtener IP dentro del contexto de request
         ip_cliente = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
         
         if archivo and (archivo.filename.endswith('.csv') or archivo.filename.endswith('.xlsx')):
@@ -344,7 +330,6 @@ def subir_archivo():
                     if upload_to_azure_blob(archivo_content, "contenido_blog.csv"):
                         flash('Archivo subido a Azure Blob Storage exitosamente', 'success')
                 
-                # ✅ Pasar ip_cliente como parámetro
                 registro_id = guardar_registro_actualizacion(df, archivo.filename, usuario, ip_cliente)
                 
                 if registro_id:
@@ -430,8 +415,6 @@ def obtener_historial_actualizaciones(limit=50):
             logging.error(f"Error al obtener historial: {e}")
             return []
     return []
-
-# ------------------ Inicializar DB ------------------
 
 with app.app_context():
     init_db()
