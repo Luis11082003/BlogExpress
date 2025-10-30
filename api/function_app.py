@@ -16,7 +16,7 @@ def get_db_config():
         'database': 'blog_rapido_express',
         'port': 3306,
         'ssl_ca': './DigiCertGlobalRootG2.crt.pem',
-        'ssl_verify_cert': False,  # IMPORTANTE: desactivar verificación SSL
+        'ssl_verify_cert': False,
         'charset': 'utf8mb4',
         'connect_timeout': 30
     }
@@ -38,7 +38,7 @@ MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRigl2aUNlcnQgSW5jMRkwFwYDVQQLExB3
 d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH
 MjAeFw0xMzA4MDExMjAwMDBaFw0zODAxMTUxMjAwMDBaMGExCzAJBgNVBAYTAlVT
 MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j
-b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IEcyMIIBIjANBgkqhkiG
+b20xIDAeBgNVBAMTF0RpZ2lDZXR0IEdsb2JhbCBSb290IEcyMIIBIjANBgkqhkiG
 9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuzfNNNx7a8myaJCtSnX/RrohCgiN9RlUyfuI
 2/Ou8jqJkTx65qsGGmvPrC3oXgkkRLpimn7Wo6h+4FR1IAWsULecYxpsMNzaHxmx
 1x7e/dfgy5SDN67sH0NO3Xss0r0upS/kqbitOtSZpLYl6ZtrAGCSYP9PIUkY92eQ
@@ -58,6 +58,66 @@ MrY=
 # Crear archivo de certificado
 with open('./DigiCertGlobalRootG2.crt.pem', 'w') as f:
     f.write(cert_content)
+
+# Inicializar tablas al cargar la función
+def initialize_tables():
+    """Inicializar tablas si no existen"""
+    conn = get_db_connection()
+    if not conn:
+        logging.error("No se pudo conectar para inicializar tablas")
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Verificar si las tablas existen
+        cursor.execute("SHOW TABLES LIKE 'registros_actualizacion'")
+        if not cursor.fetchone():
+            # Crear tabla de registros si no existe
+            cursor.execute('''
+                CREATE TABLE registros_actualizacion (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre_archivo VARCHAR(255) NOT NULL,
+                    usuario VARCHAR(100) DEFAULT 'Anonimo',
+                    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    cantidad_registros INT DEFAULT 0
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ''')
+            logging.info("✅ Tabla registros_actualizacion creada")
+        
+        cursor.execute("SHOW TABLES LIKE 'blog_contenido'")
+        if not cursor.fetchone():
+            # Crear tabla de contenido si no existe
+            cursor.execute('''
+                CREATE TABLE blog_contenido (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    registro_id INT,
+                    dia INT,
+                    mes VARCHAR(50),
+                    ano INT,
+                    numero_publicacion INT,
+                    tipo_contenido VARCHAR(10),
+                    contenido TEXT,
+                    estilo TEXT,
+                    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            ''')
+            logging.info("✅ Tabla blog_contenido creada")
+        
+        conn.commit()
+        logging.info("✅ Tablas inicializadas correctamente")
+        return True
+        
+    except Exception as e:
+        logging.error(f"❌ Error inicializando tablas: {str(e)}")
+        return False
+    finally:
+        if conn and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+# Inicializar tablas al inicio
+initialize_tables()
 
 app = func.FunctionApp()
 
@@ -174,7 +234,6 @@ def get_historial(req: func.HttpRequest) -> func.HttpResponse:
             headers={"Access-Control-Allow-Origin": "*"}
         )
 
-# Endpoint simple para probar conexión
 @app.route(route="test", methods=["GET"])
 def test_connection(req: func.HttpRequest) -> func.HttpResponse:
     conn = get_db_connection()
@@ -196,7 +255,6 @@ def test_connection(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="subir", methods=["POST", "OPTIONS"])
 def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
-    # Manejar preflight CORS
     if req.method == "OPTIONS":
         return func.HttpResponse(
             status_code=200,
@@ -208,7 +266,6 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         )
     
     try:
-        # Verificar si hay archivos
         if not req.files:
             return func.HttpResponse(
                 json.dumps({"error": "No se recibió ningún archivo"}),
@@ -228,7 +285,6 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
-        # Verificar que sea CSV
         if not file.filename.lower().endswith('.csv'):
             return func.HttpResponse(
                 json.dumps({"error": "Solo se permiten archivos CSV"}),
@@ -237,17 +293,15 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
-        # Leer y procesar archivo
         file_content = file.read()
         
-        # Procesar CSV manualmente (versión simplificada)
+        # Procesar CSV
         try:
             content_str = file_content.decode('utf-8')
             reader = csv.DictReader(io.StringIO(content_str))
             
             elementos_procesados = []
             for row in reader:
-                # Procesar cada fila con valores por defecto
                 try:
                     dia = int(row['Día']) if row['Día'].strip() else 1
                 except:
@@ -296,7 +350,9 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
                 headers={"Access-Control-Allow-Origin": "*"}
             )
         
-        # Guardar en base de datos
+        # Asegurar que las tablas existen antes de guardar
+        initialize_tables()
+        
         conn = get_db_connection()
         if not conn:
             return func.HttpResponse(
@@ -309,7 +365,7 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
         try:
             cursor = conn.cursor()
             
-            # INSERT CORREGIDO con fecha explícita
+            # Insertar registro principal
             cursor.execute('''
                 INSERT INTO registros_actualizacion 
                 (nombre_archivo, usuario, cantidad_registros, fecha_actualizacion)
@@ -337,7 +393,7 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             
             conn.commit()
             
-            # Contar tipos de contenido para el response
+            # Contar tipos de contenido
             tipos = {'T': 0, 'ST': 0, 'P': 0, 'I': 0}
             for elemento in elementos_procesados:
                 if elemento['tipo_contenido'] in tipos:
@@ -379,9 +435,9 @@ def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
             headers={"Access-Control-Allow-Origin": "*"}
         )
 
-@app.route(route="init-tables", methods=["GET"])
-def init_tables(req: func.HttpRequest) -> func.HttpResponse:
-    """Endpoint para inicializar tablas manualmente - VERSIÓN CORREGIDA"""
+@app.route(route="reset-tables", methods=["GET"])
+def reset_tables(req: func.HttpRequest) -> func.HttpResponse:
+    """Endpoint para RESETEAR tablas completamente - VERSIÓN SEGURA"""
     try:
         conn = get_db_connection()
         if not conn:
@@ -394,11 +450,17 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
         
         cursor = conn.cursor()
         
-        # ELIMINAR tablas existentes si hay problemas
+        # Deshabilitar verificación de claves foráneas temporalmente
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        
+        # Eliminar tablas si existen (de forma segura)
         cursor.execute("DROP TABLE IF EXISTS blog_contenido")
         cursor.execute("DROP TABLE IF EXISTS registros_actualizacion")
         
-        # Tabla de registros - VERSIÓN CORREGIDA
+        # Habilitar verificación de claves foráneas
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        
+        # Crear tabla de registros
         cursor.execute('''
             CREATE TABLE registros_actualizacion (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -409,7 +471,7 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
         
-        # Tabla de contenido - VERSIÓN CORREGIDA
+        # Crear tabla de contenido
         cursor.execute('''
             CREATE TABLE blog_contenido (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -432,7 +494,7 @@ def init_tables(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             json.dumps({
                 "success": True, 
-                "message": "✅ Tablas recreadas exitosamente con valores por defecto correctos"
+                "message": "✅ Tablas reseteadas y recreadas exitosamente"
             }),
             status_code=200,
             mimetype="application/json",
