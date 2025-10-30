@@ -193,3 +193,243 @@ def test_connection(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             headers={"Access-Control-Allow-Origin": "*"}
         )
+
+@app.route(route="subir", methods=["POST", "OPTIONS"])
+def subir_archivo(req: func.HttpRequest) -> func.HttpResponse:
+    # Manejar preflight CORS
+    if req.method == "OPTIONS":
+        return func.HttpResponse(
+            status_code=200,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type"
+            }
+        )
+    
+    try:
+        # Verificar si hay archivos
+        if not req.files:
+            return func.HttpResponse(
+                json.dumps({"error": "No se recibió ningún archivo"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        file = req.files.get('archivo')
+        usuario = req.form.get('usuario', 'Anónimo')
+        
+        if not file or not file.filename:
+            return func.HttpResponse(
+                json.dumps({"error": "No se proporcionó un archivo válido"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Verificar que sea CSV
+        if not file.filename.lower().endswith('.csv'):
+            return func.HttpResponse(
+                json.dumps({"error": "Solo se permiten archivos CSV"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Leer y procesar archivo
+        file_content = file.read()
+        
+        # Procesar CSV manualmente (versión simplificada)
+        try:
+            content_str = file_content.decode('utf-8')
+            reader = csv.DictReader(io.StringIO(content_str))
+            
+            elementos_procesados = []
+            for row in reader:
+                # Procesar cada fila con valores por defecto
+                try:
+                    dia = int(row['Día']) if row['Día'].strip() else 1
+                except:
+                    dia = 1
+                    
+                mes = row['Mes'] if row['Mes'].strip() else 'Enero'
+                
+                try:
+                    ano = int(row['Año']) if row['Año'].strip() else 2024
+                except:
+                    ano = 2024
+                    
+                try:
+                    numero_publicacion = int(row['N° Publicación']) if row['N° Publicación'].strip() else 1
+                except:
+                    numero_publicacion = 1
+                    
+                tipo_contenido = row['Tipo'].strip().upper()
+                contenido = row['Contenido / URL'].strip()
+                estilo = row.get('Estilo', '').strip()
+                
+                elemento = {
+                    'dia': dia,
+                    'mes': mes,
+                    'ano': ano,
+                    'numero_publicacion': numero_publicacion,
+                    'tipo_contenido': tipo_contenido,
+                    'contenido': contenido,
+                    'estilo': estilo
+                }
+                elementos_procesados.append(elemento)
+            
+        except Exception as e:
+            return func.HttpResponse(
+                json.dumps({"error": f"Error procesando CSV: {str(e)}"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        if not elementos_procesados:
+            return func.HttpResponse(
+                json.dumps({"error": "El archivo CSV está vacío o no contiene datos válidos"}),
+                status_code=400,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        # Guardar en base de datos
+        conn = get_db_connection()
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "No se pudo conectar a la base de datos"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        try:
+            cursor = conn.cursor()
+            
+            # Insertar registro principal
+            cursor.execute('''
+                INSERT INTO registros_actualizacion 
+                (nombre_archivo, usuario, cantidad_registros)
+                VALUES (%s, %s, %s)
+            ''', (file.filename, usuario, len(elementos_procesados)))
+            
+            registro_id = cursor.lastrowid
+            
+            # Insertar cada elemento del contenido
+            for elemento in elementos_procesados:
+                cursor.execute('''
+                    INSERT INTO blog_contenido 
+                    (registro_id, dia, mes, ano, numero_publicacion, tipo_contenido, contenido, estilo)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    registro_id,
+                    elemento['dia'],
+                    elemento['mes'],
+                    elemento['ano'],
+                    elemento['numero_publicacion'],
+                    elemento['tipo_contenido'],
+                    elemento['contenido'],
+                    elemento['estilo']
+                ))
+            
+            conn.commit()
+            
+            return func.HttpResponse(
+                json.dumps({
+                    "success": True,
+                    "registro_id": registro_id,
+                    "mensaje": f"Archivo procesado exitosamente. {len(elementos_procesados)} elementos cargados.",
+                    "elementos_procesados": len(elementos_procesados)
+                }),
+                status_code=200,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+            
+        except Exception as e:
+            conn.rollback()
+            logging.error(f"Error en transacción BD: {str(e)}")
+            return func.HttpResponse(
+                json.dumps({"error": f"Error al guardar en base de datos: {str(e)}"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        finally:
+            if conn.is_connected():
+                cursor.close()
+                conn.close()
+                
+    except Exception as e:
+        logging.error(f"Error en /subir: {str(e)}")
+        return func.HttpResponse(
+            json.dumps({"error": f"Error del servidor: {str(e)}"}),
+            status_code=500,
+            mimetype="application/json",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
+
+# Endpoint para inicializar tablas si es necesario
+@app.route(route="init-tables", methods=["GET"])
+def init_tables(req: func.HttpRequest) -> func.HttpResponse:
+    """Endpoint para inicializar tablas manualmente"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return func.HttpResponse(
+                json.dumps({"error": "No hay conexión a BD"}),
+                status_code=500,
+                mimetype="application/json",
+                headers={"Access-Control-Allow-Origin": "*"}
+            )
+        
+        cursor = conn.cursor()
+        
+        # Tabla de registros
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS registros_actualizacion (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nombre_archivo VARCHAR(255) NOT NULL,
+                usuario VARCHAR(100) DEFAULT 'Anonimo',
+                fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+                cantidad_registros INT DEFAULT 0
+            )
+        ''')
+        
+        # Tabla de contenido
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS blog_contenido (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                registro_id INT,
+                dia INT,
+                mes VARCHAR(50),
+                ano INT,
+                numero_publicacion INT,
+                tipo_contenido VARCHAR(10),
+                contenido TEXT,
+                estilo TEXT,
+                fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return func.HttpResponse(
+            json.dumps({"success": True, "message": "Tablas creadas exitosamente"}),
+            status_code=200,
+            mimetype="application/json",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
+        
+    except Exception as e:
+        return func.HttpResponse(
+            json.dumps({"error": str(e)}),
+            status_code=500,
+            mimetype="application/json",
+            headers={"Access-Control-Allow-Origin": "*"}
+        )
