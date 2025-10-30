@@ -1,13 +1,19 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "*.{css,js,json,png,jpg,ico}"]
+    "exclude": ["/api/*", "/static/*", "*.{css,js,json,png,jpg,ico,svg}"]
   },
   "routes": [
     {
       "route": "/api/*",
       "methods": ["GET", "POST", "PUT", "DELETE"],
       "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/static/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000"
+      }
     }
   ],
   "responseOverrides": {
@@ -16,11 +22,12 @@
     }
   },
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;",
-    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "default-src 'self' https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;",
     "X-Content-Type-Options": "nosniff"
   },
   "mimeTypes": {
-    ".json": "application/json"
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css"
   }
 }
