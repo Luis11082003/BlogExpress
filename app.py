@@ -245,12 +245,11 @@ def crear_archivo_ejemplo():
 
 # ------------------ Guardar registros en BD ------------------
 
-def guardar_registro_actualizacion(df, nombre_archivo, usuario=None):
+def guardar_registro_actualizacion(df, nombre_archivo, usuario=None, ip_cliente=None):
     conn = get_db_connection()
     if conn:
         try:
             cursor = conn.cursor()
-            ip_cliente = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
             
             # Normalizar columnas
             df.rename(columns={
@@ -322,6 +321,9 @@ def subir_archivo():
         archivo = request.files['archivo']
         usuario = request.form.get('usuario', 'Anónimo')
         
+        # ✅ Obtener IP dentro del contexto de request
+        ip_cliente = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+        
         if archivo and (archivo.filename.endswith('.csv') or archivo.filename.endswith('.xlsx')):
             try:
                 if archivo.filename.endswith('.csv'):
@@ -342,7 +344,8 @@ def subir_archivo():
                     if upload_to_azure_blob(archivo_content, "contenido_blog.csv"):
                         flash('Archivo subido a Azure Blob Storage exitosamente', 'success')
                 
-                registro_id = guardar_registro_actualizacion(df, archivo.filename, usuario)
+                # ✅ Pasar ip_cliente como parámetro
+                registro_id = guardar_registro_actualizacion(df, archivo.filename, usuario, ip_cliente)
                 
                 if registro_id:
                     mode = os.getenv('MODE', 'local')
