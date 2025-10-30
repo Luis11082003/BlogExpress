@@ -26,5 +26,6 @@ jobs:
           app_location: "/"
           api_location: "api"
           output_location: ""
+          api_build_command: "echo 'No build needed for Python API'"
         env:
           IS_STATIC_EXPORT: true
