@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Archivo - Blog Express</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav>
+        <h1>Blog Rapido Express</h1>
+        <ul>
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/subir.html" class="active">Subir Archivo</a></li>
+            <li><a href="/historial.html">Historial</a></li>
+            <li><a href="/info.html">Info Sistema</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <div class="container">
+            <h2>Subir Archivo CSV o Excel</h2>
+            
+            <form id="form-subir" onsubmit="subirArchivo(event)">
+                <div class="form-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" id="usuario" name="usuario" placeholder="Tu nombre (opcional)" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="archivo">Archivo (CSV o Excel):</label>
+                    <input type="file" id="archivo" name="archivo" accept=".csv,.xlsx,.xls" required class="form-input">
+                    <small class="form-help">Formatos aceptados: .csv, .xlsx, .xls</small>
+                </div>
+                
+                <button type="submit" class="btn-subir">Subir Archivo</button>
+            </form>
+            
+            <div id="estado-subida" class="estado-mensaje"></div>
+            
+            <div class="info-archivo">
+                <h3>Formato del archivo:</h3>
+                <p>El archivo debe contener las siguientes columnas:</p>
+                <ul>
+                    <li><strong>Día</strong> (número)</li>
+                    <li><strong>Mes</strong> (texto)</li>
+                    <li><strong>Año</strong> (número)</li>
+                    <li><strong>N° Publicación</strong> (número)</li>
+                    <li><strong>Tipo</strong> (T, ST, P, I)</li>
+                    <li><strong>Contenido / URL</strong> (texto o URL)</li>
+                    <li><strong>Estilo</strong> (CSS opcional)</li>
+                </ul>
+                
+                <h4>Tipos de contenido:</h4>
+                <ul>
+                    <li><strong>T</strong> - Título principal</li>
+                    <li><strong>ST</strong> - Subtítulo</li>
+                    <li><strong>P</strong> - Párrafo</li>
+                    <li><strong>I</strong> - Imagen (URL)</li>
+                </ul>
+                
+                <div class="ejemplo-csv">
+                    <h4>Ejemplo de CSV:</h4>
+                    <pre>Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
+21,Octubre,2025,1,T,"Bienvenidos al Blog","color:#2c3e50; text-align:center"
+21,Octubre,2025,1,P,"Contenido del párrafo...","color:#555; font-size:16px"</pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
