@@ -16,12 +16,12 @@ jobs:
     name: Build and Deploy Job
     env:
       MODE: azure
-      DB_HOST: blog-rapido-express-mysql.mysql.database.azure.com
-      DB_USER: admin_blog
-      DB_PASSWORD: PasswordSeguro123!
-      DB_NAME: blog_rapido_express
-      DB_PORT: 3306
-      SECRET_KEY: blog_rapido_express_secret_key_2025_azure_1
+      DBHOST: blog-rapido-express-mysql.mysql.database.azure.com
+      DBUSER: admin_blog
+      DBPASSWORD: PasswordSeguro123!
+      DBNAME: blog-rapido-express-mysql
+      DBPORT: 3306
+      SECRETKEY: blog_rapido_express_secret_key_2025_azure_1
 
     steps:
       - name: Checkout repository
