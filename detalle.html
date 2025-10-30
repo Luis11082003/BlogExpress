@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle Registro - Blog Express</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <nav>
         <h1>Blog Rapido Express</h1>
         <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/subir.html">Subir Archivo</a></li>
-            <li><a href="/historial.html">Historial</a></li>
-            <li><a href="/info.html">Info Sistema</a></li>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="subir.html">Subir Archivo</a></li>
+            <li><a href="historial.html">Historial</a></li>
+            <li><a href="info.html">Info Sistema</a></li>
         </ul>
     </nav>
 
     <main>
         <div class="container">
             <div class="breadcrumb">
-                <a href="/historial.html">← Volver al Historial</a>
+                <a href="historial.html">← Volver al Historial</a>
             </div>
             
             <div id="contenido-detalle" class="contenido-detalle">
@@ -29,14 +29,13 @@
             
             <div class="acciones-detalle">
                 <button onclick="window.history.back()" class="btn-volver">Volver</button>
-                <button onclick="window.location.href='/historial.html'" class="btn-historial">Ver Todo el Historial</button>
+                <button onclick="window.location.href='historial.html'" class="btn-historial">Ver Todo el Historial</button>
             </div>
         </div>
     </main>
 
-    <script src="/static/js/app.js"></script>
+    <script src="static/js/app.js"></script>
     <script>
-        // Cargar detalle al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             cargarDetalle();
         });

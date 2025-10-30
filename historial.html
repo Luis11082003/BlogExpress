@@ -4,16 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial - Blog Express</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
     <nav>
         <h1>Blog Rapido Express</h1>
         <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/subir.html">Subir Archivo</a></li>
-            <li><a href="/historial.html" class="active">Historial</a></li>
-            <li><a href="/info.html">Info Sistema</a></li>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="subir.html">Subir Archivo</a></li>
+            <li><a href="historial.html" class="active">Historial</a></li>
+            <li><a href="info.html">Info Sistema</a></li>
         </ul>
     </nav>
 
@@ -33,20 +33,17 @@
         </div>
     </main>
 
-    <script src="/static/js/app.js"></script>
+    <script src="static/js/app.js"></script>
     <script>
-        // Cargar historial al iniciar
         document.addEventListener('DOMContentLoaded', function() {
             cargarHistorial();
         });
         
-        // Actualizar contador
         function actualizarContador(cantidad) {
             const contador = document.getElementById('contador-registros');
             contador.textContent = `${cantidad} registros`;
         }
         
-        // Sobrescribir función mostrarHistorial para incluir contador
         const mostrarHistorialOriginal = window.mostrarHistorial;
         window.mostrarHistorial = function(historial) {
             actualizarContador(historial.length);

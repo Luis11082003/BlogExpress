@@ -1,4 +1,4 @@
-// API Base URL
+// API Base URL - compatible con Azure Static Web Apps
 const API_BASE = '/api';
 
 // Función para cargar contenido del blog
@@ -22,6 +22,19 @@ async function cargarBlog() {
 // Función para mostrar contenido del blog
 function mostrarContenidoBlog(contenido) {
     const contenedor = document.getElementById('contenido-blog');
+    
+    if (!contenido || contenido.length === 0) {
+        contenedor.innerHTML = `
+            <div class="blog-vacio">
+                <h3>Bienvenido al Blog de Rapido Express</h3>
+                <p>No hay contenido disponible todavía.</p>
+                <p>¡Sube tu primer archivo CSV o Excel para comenzar!</p>
+                <a href="subir.html" class="btn-subir">Subir Primer Archivo</a>
+            </div>
+        `;
+        return;
+    }
+    
     let html = '';
     
     contenido.forEach(item => {
@@ -45,7 +58,7 @@ function mostrarContenidoBlog(contenido) {
         }
     });
     
-    contenedor.innerHTML = html || '<p>No hay contenido disponible</p>';
+    contenedor.innerHTML = html;
 }
 
 // Función para subir archivo
@@ -69,18 +82,20 @@ async function subirArchivo(event) {
         const resultado = await response.json();
         
         if (response.ok) {
-            estado.textContent = `Archivo subido exitosamente. Registro #${resultado.registro_id}`;
+            estado.textContent = `✅ Archivo subido exitosamente. Registro #${resultado.registro_id}`;
             estado.className = 'estado-exito';
             event.target.reset();
             
-            // Recargar el blog después de subir
-            setTimeout(() => cargarBlog(), 1000);
+            // Redirigir al historial después de 2 segundos
+            setTimeout(() => {
+                window.location.href = 'historial.html';
+            }, 2000);
         } else {
-            estado.textContent = `Error: ${resultado.error}`;
+            estado.textContent = `❌ Error: ${resultado.error}`;
             estado.className = 'estado-error';
         }
     } catch (error) {
-        estado.textContent = `Error de conexión: ${error.message}`;
+        estado.textContent = `❌ Error de conexión: ${error.message}`;
         estado.className = 'estado-error';
     } finally {
         boton.disabled = false;
@@ -110,7 +125,13 @@ function mostrarHistorial(historial) {
     const contenedor = document.getElementById('contenido-historial');
     
     if (historial.length === 0) {
-        contenedor.innerHTML = '<p>No hay registros en el historial</p>';
+        contenedor.innerHTML = `
+            <div class="historial-vacio">
+                <h3>No hay registros en el historial</h3>
+                <p>¡Sube tu primer archivo para comenzar!</p>
+                <a href="subir.html" class="btn-subir">Subir Primer Archivo</a>
+            </div>
+        `;
         return;
     }
     
@@ -130,7 +151,7 @@ function mostrarHistorial(historial) {
     `;
     
     historial.forEach(item => {
-        const fecha = new Date(item.fecha_actualizacion).toLocaleString();
+        const fecha = new Date(item.fecha_actualizacion).toLocaleString('es-ES');
         html += `
             <tr>
                 <td>${item.id}</td>
@@ -139,7 +160,7 @@ function mostrarHistorial(historial) {
                 <td>${fecha}</td>
                 <td>${item.cantidad_registros}</td>
                 <td>
-                    <a href="/detalle.html?id=${item.id}" class="btn-ver">Ver Detalle</a>
+                    <a href="detalle.html?id=${item.id}" class="btn-ver">Ver Detalle</a>
                 </td>
             </tr>
         `;
@@ -185,33 +206,38 @@ function mostrarDetalle(registro, contenido) {
             <div class="info-registro">
                 <p><strong>Archivo:</strong> ${registro.nombre_archivo}</p>
                 <p><strong>Usuario:</strong> ${registro.usuario || 'Anónimo'}</p>
-                <p><strong>Fecha:</strong> ${new Date(registro.fecha_actualizacion).toLocaleString()}</p>
+                <p><strong>Fecha:</strong> ${new Date(registro.fecha_actualizacion).toLocaleString('es-ES')}</p>
                 <p><strong>Registros:</strong> ${registro.cantidad_registros}</p>
+                <p><strong>Estado:</strong> ${registro.estado || 'completado'}</p>
             </div>
             <h3>Contenido:</h3>
             <div class="contenido-detalle">
     `;
     
-    contenido.forEach(item => {
-        const estilo = item.estilo || '';
-        
-        switch(item.tipo_contenido?.toUpperCase()) {
-            case 'T':
-                html += `<h4 style="${estilo}">${item.contenido}</h4>`;
-                break;
-            case 'ST':
-                html += `<h5 style="${estilo}">${item.contenido}</h5>`;
-                break;
-            case 'P':
-                html += `<p style="${estilo}">${item.contenido}</p>`;
-                break;
-            case 'I':
-                html += `<img src="${item.contenido}" style="${estilo}" alt="Imagen" class="imagen-detalle">`;
-                break;
-            default:
-                html += `<div style="${estilo}">${item.contenido}</div>`;
-        }
-    });
+    if (!contenido || contenido.length === 0) {
+        html += '<p>No hay contenido en este registro.</p>';
+    } else {
+        contenido.forEach(item => {
+            const estilo = item.estilo || '';
+            
+            switch(item.tipo_contenido?.toUpperCase()) {
+                case 'T':
+                    html += `<h4 style="${estilo}">${item.contenido}</h4>`;
+                    break;
+                case 'ST':
+                    html += `<h5 style="${estilo}">${item.contenido}</h5>`;
+                    break;
+                case 'P':
+                    html += `<p style="${estilo}">${item.contenido}</p>`;
+                    break;
+                case 'I':
+                    html += `<img src="${item.contenido}" style="${estilo}" alt="Imagen" class="imagen-detalle">`;
+                    break;
+                default:
+                    html += `<div style="${estilo}">${item.contenido}</div>`;
+            }
+        });
+    }
     
     html += '</div></div>';
     contenedor.innerHTML = html;
@@ -222,18 +248,21 @@ function cargarInfoSistema() {
     const info = {
         modo: 'azure',
         db_host: 'blog-rapido-express-mysql.mysql.database.azure.com',
-        azure_configured: true
+        azure_configured: true,
+        version: '1.0.0'
     };
     
     const contenedor = document.getElementById('info-sistema');
     contenedor.innerHTML = `
         <div class="info-card">
             <h3>Información del Sistema</h3>
-            <p><strong>Modo:</strong> ${info.modo}</p>
+            <p><strong>Modo:</strong> ${info.mode}</p>
             <p><strong>Servidor BD:</strong> ${info.db_host}</p>
             <p><strong>Azure Configurado:</strong> ${info.azure_configured ? 'Sí' : 'No'}</p>
+            <p><strong>Versión:</strong> ${info.version}</p>
             <p><strong>Frontend:</strong> HTML/JavaScript</p>
             <p><strong>Backend:</strong> Azure Functions</p>
+            <p><strong>Base de Datos:</strong> MySQL Azure</p>
         </div>
     `;
 }
@@ -250,3 +279,15 @@ function mostrarMensaje(mensaje, tipo = 'info') {
         mensajeDiv.remove();
     }, 5000);
 }
+
+// Navegación activa
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const navLinks = document.querySelectorAll('nav a');
+    
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+            link.classList.add('active');
+        }
+    });
+});
