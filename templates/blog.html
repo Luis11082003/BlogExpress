@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Rápido Express</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Blog Interno Rápido Express</h1>
+            <div class="mode-badge mode-{{ mode }}">{{ mode|upper }}</div>
+            <div class="header-buttons">
+                <a href="/subir" class="admin-btn">Administrar Contenido</a>
+                <a href="/historial" class="history-btn">Ver Historial</a>
+                <a href="/info" class="info-btn">Info Sistema</a>
+            </div>
+        </header>
+        
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <main class="blog-content">
+            {{ contenido|safe }}
+        </main>
+        
+        <footer>
+            <p>Contenido generado dinámicamente desde CSV/Excel | Modo: {{ mode|upper }}</p>
+            <p>Práctica 2 - Generación Dinámica de Contenido</p>
+        </footer>
+    </div>
+</body>
+</html>
