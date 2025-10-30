@@ -3,42 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle Registro - Blog Express</title>
+    <title>Detalle - Blog Express</title>
     <link rel="stylesheet" href="static/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👁️</text></svg>">
 </head>
 <body>
-    <nav>
-        <h1>Blog Rapido Express</h1>
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="subir.html">Subir Archivo</a></li>
-            <li><a href="historial.html">Historial</a></li>
-            <li><a href="info.html">Info Sistema</a></li>
-        </ul>
-    </nav>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>🚀 Blog Express</h1>
+                <span class="nav-subtitle">Sistema de Gestión Dinámica</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">📝 Blog</a>
+                <a href="subir.html" class="nav-link">📤 Subir</a>
+                <a href="historial.html" class="nav-link">📊 Historial</a>
+                <a href="info.html" class="nav-link">ℹ️ Info</a>
+            </div>
+        </nav>
+    </header>
 
-    <main>
-        <div class="container">
-            <div class="breadcrumb">
-                <a href="historial.html">← Volver al Historial</a>
+    <main class="container">
+        <section class="detail-section">
+            <div class="section-header">
+                <h2>👁️ Detalle del Registro</h2>
+                <p>Información completa de un archivo procesado y su contenido</p>
             </div>
-            
-            <div id="contenido-detalle" class="contenido-detalle">
-                <p>Cargando detalle del registro...</p>
+
+            <div class="detail-actions">
+                <a href="historial.html" class="btn-secondary">📊 Volver al Historial</a>
+                <a href="subir.html" class="btn-primary">📤 Subir Nuevo Archivo</a>
             </div>
-            
-            <div class="acciones-detalle">
-                <button onclick="window.history.back()" class="btn-volver">Volver</button>
-                <button onclick="window.location.href='historial.html'" class="btn-historial">Ver Todo el Historial</button>
+
+            <div id="contenido-detalle" class="detail-container">
+                <!-- El detalle se carga dinámicamente aquí -->
+                <div class="loading-state">
+                    <div class="spinner-large"></div>
+                    <p>Cargando detalles del registro...</p>
+                </div>
             </div>
-        </div>
+        </section>
     </main>
 
+    <footer class="footer">
+        <div class="footer-content">
+            <p>🚀 <strong>Blog Express</strong> - Sistema de Gestión de Contenido Dinámico</p>
+            <p>Desarrollado con Azure Functions + MySQL + Static Web Apps</p>
+            <p class="footer-version">v2.0 - Práctica de Implementación</p>
+        </div>
+    </footer>
+
     <script src="static/js/app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarDetalle();
-        });
-    </script>
 </body>
 </html>

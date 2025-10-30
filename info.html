@@ -3,82 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Información del Sistema - Blog Express</title>
+    <title>Información - Blog Express</title>
     <link rel="stylesheet" href="static/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>ℹ️</text></svg>">
 </head>
 <body>
-    <nav>
-        <h1>Blog Rapido Express</h1>
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="subir.html">Subir Archivo</a></li>
-            <li><a href="historial.html">Historial</a></li>
-            <li><a href="info.html" class="active">Info Sistema</a></li>
-        </ul>
-    </nav>
-
-    <main>
-        <div class="container">
-            <h2>Información del Sistema</h2>
-            
-            <div id="info-sistema" class="info-sistema">
-                <p>Cargando información...</p>
+    <header>
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>🚀 Blog Express</h1>
+                <span class="nav-subtitle">Sistema de Gestión Dinámica</span>
             </div>
-            
-            <div class="tecnologias">
-                <h3>Tecnologías Utilizadas</h3>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">📝 Blog</a>
+                <a href="subir.html" class="nav-link">📤 Subir</a>
+                <a href="historial.html" class="nav-link">📊 Historial</a>
+                <a href="info.html" class="nav-link active">ℹ️ Info</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="info-section">
+            <div class="section-header">
+                <h2>ℹ️ Información del Sistema</h2>
+                <p>Estado y detalles técnicos del Blog Express</p>
+            </div>
+
+            <div id="info-sistema" class="system-info">
+                <!-- La información del sistema se carga dinámicamente aquí -->
+                <div class="loading-state">
+                    <div class="spinner-large"></div>
+                    <p>Cargando información del sistema...</p>
+                </div>
+            </div>
+
+            <div class="tech-stack">
+                <h3>🛠️ Stack Tecnológico</h3>
                 <div class="tech-grid">
                     <div class="tech-card">
+                        <div class="tech-icon">🌐</div>
                         <h4>Frontend</h4>
                         <ul>
-                            <li>HTML5</li>
-                            <li>CSS3</li>
-                            <li>JavaScript ES6+</li>
-                            <li>Responsive Design</li>
+                            <li>HTML5 + CSS3 + JavaScript</li>
+                            <li>Diseño Responsive</li>
+                            <li>Static Web Apps</li>
                         </ul>
                     </div>
-                    
                     <div class="tech-card">
+                        <div class="tech-icon">⚡</div>
                         <h4>Backend</h4>
                         <ul>
                             <li>Azure Functions</li>
-                            <li>Python 3.11</li>
-                            <li>MySQL Database</li>
-                            <li>Pandas</li>
+                            <li>Python 3.9+</li>
+                            <li>API REST</li>
                         </ul>
                     </div>
-                    
                     <div class="tech-card">
-                        <h4>Infraestructura</h4>
+                        <div class="tech-icon">🗄️</div>
+                        <h4>Base de Datos</h4>
                         <ul>
-                            <li>Azure Static Web Apps</li>
-                            <li>Azure MySQL</li>
-                            <li>GitHub Actions</li>
-                            <li>CI/CD Automático</li>
+                            <li>MySQL Azure</li>
+                            <li>Procedimientos Almacenados</li>
+                            <li>Transacciones ACID</li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <div class="tech-icon">📊</div>
+                        <h4>Procesamiento</h4>
+                        <ul>
+                            <li>Pandas + OpenPyXL</li>
+                            <li>Validación de Datos</li>
+                            <li>CSV/Excel Processing</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            
-            <div class="funcionalidades">
-                <h3>Funcionalidades</h3>
-                <ul>
-                    <li>✅ Visualización dinámica de contenido del blog</li>
-                    <li>✅ Subida de archivos CSV y Excel</li>
-                    <li>✅ Historial completo de actualizaciones</li>
-                    <li>✅ Detalle de cada registro</li>
-                    <li>✅ Base de datos MySQL en la nube</li>
-                    <li>✅ Interfaz responsive y moderna</li>
-                </ul>
+
+            <div class="features-list">
+                <h3>🎯 Características Principales</h3>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <span class="feature-icon">📤</span>
+                        <div>
+                            <h4>Carga Dinámica</h4>
+                            <p>Subida de archivos CSV/Excel para generar contenido automáticamente</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🎨</span>
+                        <div>
+                            <h4>Tipos de Contenido</h4>
+                            <p>Soporte para Títulos, Subtítulos, Párrafos e Imágenes con estilos CSS</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        <div>
+                            <h4>Historial Completo</h4>
+                            <p>Registro detallado de todas las actualizaciones con información de auditoría</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔒</span>
+                        <div>
+                            <h4>Validación Robusta</h4>
+                            <p>Validación de datos, tipos de contenido y formato de archivos</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">⚡</span>
+                        <div>
+                            <h4>Rendimiento</h4>
+                            <p>Arquitectura serverless con Azure Functions para escalado automático</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📱</span>
+                        <div>
+                            <h4>Responsive Design</h4>
+                            <p>Interfaz adaptable a dispositivos móviles y desktop</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <div class="api-info">
+                <h3>🔗 Endpoints de la API</h3>
+                <div class="endpoints-list">
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/blog</span>
+                        <span class="description">Obtener contenido del blog</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method post">POST</span>
+                        <span class="path">/api/subir</span>
+                        <span class="description">Subir archivo CSV/Excel</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/historial</span>
+                        <span class="description">Obtener historial de actualizaciones</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/detalle/{id}</span>
+                        <span class="description">Obtener detalle de registro específico</span>
+                    </div>
+                    <div class="endpoint">
+                        <span class="method get">GET</span>
+                        <span class="path">/api/health</span>
+                        <span class="description">Verificar estado del sistema</span>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
+    <footer class="footer">
+        <div class="footer-content">
+            <p>🚀 <strong>Blog Express</strong> - Sistema de Gestión de Contenido Dinámico</p>
+            <p>Desarrollado con Azure Functions + MySQL + Static Web Apps</p>
+            <p class="footer-version">v2.0 - Práctica de Implementación</p>
+        </div>
+    </footer>
+
     <script src="static/js/app.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarInfoSistema();
-        });
-    </script>
 </body>
 </html>
