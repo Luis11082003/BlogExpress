@@ -1,5 +1,8 @@
 ﻿Día,Mes,Año,N° Publicación,Tipo,Contenido / URL,Estilo
-30,Octubre,2024,1,T,"Título desde CSV","color:#2c3e50; text-align:center"
-30,Octubre,2024,1,P,"Este párrafo se generó desde un archivo CSV subido al sistema.","color:#555; line-height:1.6"
-30,Octubre,2024,1,ST,"Subtítulo generado","color:#3498db"
-30,Octubre,2024,1,I,"https://picsum.photos/600/300","width:100%; border-radius:8px"
+30,Octubre,2024,1,T,"🚀 Blog Express - SISTEMA COMPLETO","color:#2c3e50; text-align:center; font-size:2rem"
+30,Octubre,2024,1,ST,"Generación Dinámica desde CSV","color:#3498db; text-align:center"
+30,Octubre,2024,1,P,"Este contenido se generó automáticamente desde un archivo CSV. El sistema está funcionando con base de datos MySQL.","color:#555; line-height:1.6"
+30,Octubre,2024,1,P,"✅ CSV a HTML dinámico ✅ Tipos de contenido (T, ST, P, I) ✅ Estilos CSS ✅ Azure Functions ✅ MySQL","color:#27ae60; background:#f8f9fa; padding:1rem; border-radius:8px"
+30,Octubre,2024,1,I,"https://picsum.photos/800/400","width:100%; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.1)"
+30,Octubre,2024,1,ST,"Práctica 2 Completada","color:#e74c3c; text-align:center"
+30,Octubre,2024,1,P,"Sistema 100% funcional con Azure Static Web Apps, Azure Functions y Azure MySQL","color:#7f8c8d; text-align:center; font-style:italic"
